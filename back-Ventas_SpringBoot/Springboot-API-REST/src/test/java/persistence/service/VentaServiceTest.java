@@ -1,5 +1,6 @@
 package persistence.service;
 
+import com.citt.exceptions.VentaNotFoundException;
 import com.citt.persistence.entity.Venta;
 import com.citt.persistence.repository.VentaRepository;
 import com.citt.persistence.services.VentaServiceImpl;
@@ -11,11 +12,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import java.time.LocalDate;
-
-import static org.mockito.Mockito.when;
+import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
 public class VentaServiceTest {
@@ -87,5 +88,51 @@ public class VentaServiceTest {
         assertNotNull(result);
         assertEquals(1L, result.getIdVenta());
         assertEquals(ventaToSave.getDireccionCompra(), result.getDireccionCompra());
+    }
+
+    @Test
+    @DisplayName("Cuando se busca una venta por ID existente, retorna la venta")
+    void whenFindById_thenReturnVenta() throws VentaNotFoundException {
+        when(ventaRepository.findById(1L)).thenReturn(Optional.of(venta));
+
+        Venta result = ventaService.findById(1L);
+
+        assertNotNull(result);
+        assertEquals("Calle Falsa 123", result.getDireccionCompra());
+        verify(ventaRepository).findById(1L);
+    }
+     //nuevo
+    @Test
+    @DisplayName("Cuando se busca un ID inexistente, lanza VentaNotFoundException")
+    void whenFindByIdInvalid_thenThrowException() {
+        when(ventaRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(VentaNotFoundException.class, () -> {
+            ventaService.findById(99L);
+        });
+    }
+
+    @Test
+    @DisplayName("Cuando se elimina una venta existente, se llama al repositorio")
+    void whenDeleteVenta_thenSuccess() throws VentaNotFoundException {
+        when(ventaRepository.findById(1L)).thenReturn(Optional.of(venta));
+        doNothing().when(ventaRepository).deleteById(1L);
+
+        ventaService.deleteVenta(1L);
+
+        verify(ventaRepository, times(1)).deleteById(1L);
+    }
+
+    @Test
+    @DisplayName("Cuando se actualiza una venta, se guardan los cambios correctamente")
+    void whenUpdateVenta_thenSuccess() throws VentaNotFoundException {
+        Venta ventaNueva = Venta.builder().direccionCompra("Nueva Direccion").build();
+        when(ventaRepository.findById(1L)).thenReturn(Optional.of(venta));
+        when(ventaRepository.save(any(Venta.class))).thenReturn(venta);
+
+        ventaService.updateVenta(1L, ventaNueva);
+
+        assertEquals("Nueva Direccion", venta.getDireccionCompra());
+        verify(ventaRepository).save(any(Venta.class));
     }
 }
