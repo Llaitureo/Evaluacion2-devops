@@ -1,0 +1,10 @@
+services:
+  backend-despachos:
+    ports:
+      - "8081:80801"
+  backend-ventas:
+    ports:
+      - "8082:80802"
+  frontend:
+    ports:
+      - "3000:3000"
