@@ -2,8 +2,10 @@ services:
   mysql:
     image: mysql:8
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+    env_file:
+      - .env
     ports:
       - "3306:3306"
     volumes:
@@ -13,14 +15,49 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-  backend-despachos:
-    ports:
-      - "8082:80802"
   backend-ventas:
+    build: 
+      context: ./back-Ventas_SpringBoot/Springboot-API-REST
+      dockerfile: Dockerfile
+      image: backend-venta:1.0
     ports:
       - "8081:80801"
+    environment:
+      - DATASOURSE_URL: jdbc:mysql://${DB_ENDPOINT}:${DB_PORT}/${DB_NAME}
+      - DB_PORT: ${DB_PORT}
+      - DB_NAME: ${DB_NAME}
+      - DB_USERNAME: ${DB_USERNAME}
+      - DB_PASSWORD: ${DB_PASSWORD}
+    env_file:
+      - .env
+    depends_on:
+      mysql:
+        condition: service_healthy
+  backend-despachos:
+    build:
+      context: ./back-Despachos_SpringBoot/Springboot-API-REST-DESPACHO
+      dockerfile: Dockerfile
+    image: backend-despacho:1.0
+    ports:
+      - "8082:80802"
+    environment:
+      - DATASOURSE_URL: jdbc:mysql://${DB_ENDPOINT}:${DB_PORT}/despachos_db
+      - DB_PORT: ${DB_PORT}
+      - DB_NAME: despachos_db
+      - DB_USERNAME: ${DB_USERNAME}
+      - DB_PASSWORD: ${DB_PASSWORD}
+    env_file:
+      - .env
+    depends_on:
+      - backend-ventas
+  
   frontend:
+    build:
+      context: ./front_despacho
+    image: despacho-frontend:1.0
     ports:
       - "3000:3000"
+    depends_on:
+      - backend-despachos
 volumes:
   mysql_data:
