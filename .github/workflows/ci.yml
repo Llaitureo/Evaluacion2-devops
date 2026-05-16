@@ -28,9 +28,6 @@ jobs:
         cache: 'npm'
         cache-dependency-path: './front_despacho/package-lock.json'
 
-    - name: Instalar dependencias
-      run: npm ci # 'npm ci' es más rápido y estricto para entornos de integración continua
-
     - name: Ejecutar tests del frontend
       run: npm run test
       env:
@@ -52,9 +49,6 @@ jobs:
           node-version: '18'
           cache: 'npm'
           cache-dependency-path: './front_despacho/package-lock.json'
-      
-      - name: Instalar dependencias
-        run: npm ci
       
       - name: run build
         run: npm run build
@@ -84,7 +78,12 @@ jobs:
           cache: maven
       - name: Ejecutar test del backend
         run: mvn clean test -Dspring.profiles.active=test
-
+        env:
+          DB_ENDPOINT: localhost
+          DB_PORT: 3306
+          DB_NAME: ventas_db
+          DB_USERNAME: root
+          DB_PASSWORD: ""
   back-Venta-build:
     needs: back-Venta-test
     runs-on: ubuntu-latest
@@ -128,6 +127,12 @@ jobs:
           cache: maven
       - name: Ejecutar test del backend
         run: mvn clean test -Dspring.profiles.active=test
+        env:
+          DB_ENDPOINT: localhost
+          DB_PORT: 3306
+          DB_NAME: despachos_db
+          DB_USERNAME: root
+          DB_PASSWORD: ""
 
   back-Despacho-build:
     needs: back-Despacho-test
