@@ -29,7 +29,9 @@ jobs:
         cache-dependency-path: './front_despacho/package-lock.json'
 
     - name: Ejecutar tests del frontend
-      run: npm run test
+      run: |
+        cd front_despacho
+        npm run test
 
   front-build:
     needs: front-test
@@ -49,7 +51,9 @@ jobs:
           cache-dependency-path: './front_despacho/package-lock.json'
       
       - name: run build
-        run: npm run build
+        run: |
+          cd front_despacho
+          npm run build
 
   back-Venta-test:
     runs-on: ubuntu-latest
