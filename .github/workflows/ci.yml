@@ -1,0 +1,148 @@
+name: CI Pipeline
+# Acciones que ejecutan el archivo
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+# jobs: trabajos a ejecutar
+jobs:
+  front-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./front_despacho
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup node
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: './front_despacho/package-lock.json'
+
+    - name: Instalar dependencias
+      run: npm ci # 'npm ci' es más rápido y estricto para entornos de integración continua
+
+    - name: Ejecutar tests del frontend
+      run: npm run test
+      env:
+        CI: true
+
+  front-build:
+    needs: front-test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./front_despacho
+    steps:
+      - name: Checkout repository (git clone)
+        uses: actions/checkout@v4
+
+      - name: Setup node (instalar node)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: './front_despacho/package-lock.json'
+      
+      - name: Instalar dependencias
+        run: npm ci
+      
+      - name: run build
+        run: npm run build
+
+  back-Venta-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./back-Ventas_SpringBoot/Springboot-API-REST
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+          MYSQL_DATABASE: ventas_db
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+    steps:
+      - name: Checkout repository (git clone)
+        uses: actions/checkout@v4
+      - name: Config JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+      - name: Ejecutar test del backend
+        run: mvn clean test -Dspring.profiles.active=test
+
+  back-Venta-build:
+    needs: back-Venta-test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./back-Ventas_SpringBoot/Springboot-API-REST
+    steps:
+      - name: Checkout repository (git clone)
+        uses: actions/checkout@v4
+      - name: Config JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+      - name: Empaquetar Aplicación
+        run: mvn clean package -DskipTests
+
+  back-Despacho-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./back-Despachos_SpringBoot/Springboot-API-REST-DESPACHO
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+          MYSQL_DATABASE: despachos_db
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+    steps:
+      - name: Checkout repository (git clone)
+        uses: actions/checkout@v4
+      - name: Config JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+      - name: Ejecutar test del backend
+        run: mvn clean test -Dspring.profiles.active=test
+
+  back-Despacho-build:
+    needs: back-Despacho-test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./back-Despachos_SpringBoot/Springboot-API-REST-DESPACHO
+    steps:
+      - name: Checkout repository (git clone)
+        uses: actions/checkout@v4
+      - name: Config JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+      - name: Empaquetar Aplicación
+        run: mvn clean package -DskipTests
