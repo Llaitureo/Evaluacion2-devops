@@ -3,7 +3,7 @@ import Footer from "./Layouts/Footer";
 
 import { PruebaCards } from "./CrudAdmin/PruebaCards";
 import Reviews from "./Layouts/Reviews";
-
+import { TableCompras } from "./CrudAdmin/TableCompras";
 export const CrudAdmin = () => {
   return (
     <>

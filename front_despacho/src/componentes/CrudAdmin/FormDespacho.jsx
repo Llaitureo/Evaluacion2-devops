@@ -3,118 +3,92 @@ import Swal from "sweetalert2";
 import axios from "axios";
 
 export const FormDespacho = ({ venta, onClose }) => {
-  const { register, handleSubmit } = useForm();
+  const { register, handleSubmit, formState: { errors } } = useForm();
 
   const onSubmit = async (data) => {
-    console.log("onSubmit ejecutado");
-    const jsonData = {
+    const jsonDespacho = {
       fechaDespacho: data.fechaDespacho,
       patenteCamion: data.patenteCamion,
       intento: 0,
-      entregado: false,
       idCompra: venta.idVenta,
       direccionCompra: venta.direccionCompra,
       valorCompra: venta.valorCompra,
+      despachado: false 
     };
 
-    const jsonDataSales = {
-      despachoGenerado: true,
+    const jsonUpdateVenta = { 
+      despachoGenerado: true 
     };
-
-    console.log("Datos del formulario:", jsonData);
 
     try {
-      await axios.put(
-        `http://192.168.30/api/v1/ventas/${venta.idVenta}`,
-        jsonDataSales,
-        {
-          headers:{
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-      }
-        }
-      );
-      await axios.post("http://192.168.320/api/v1/despachos", jsonData, {
-        headers:{
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-    }
-      });
+      await axios.put(`http://localhost:8081/api/v1/ventas/${venta.idVenta}`, jsonUpdateVenta);
+      
+      await axios.post(`http://localhost:8082/api/v1/despachos`, jsonDespacho);
+
       Swal.fire({
-        title: "Despacho registrado 🛻!",
-        text: "El despacho ha sido generado con éxito en la base de datos",
+        title: "¡Despacho Creado!",
+        text: "La orden se ha registrado exitosamente.",
         icon: "success",
-        confirmButtonText: "Aceptar",
+        confirmButtonColor: "#0d9488",
       });
+
+      onClose();
     } catch (error) {
-      console.error("Error en la solicitud:", error);
+      console.error("Error al procesar el despacho:", error);
+      Swal.fire("Error", "Hubo un fallo en el servidor al guardar.", "error");
     }
-    onClose();
   };
+
   return (
-    <>
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="flex flex-col justify-center text-center px-24 text-xl"
-      >
-        <div className="mx-auto text-3xl font-bold mb-10 text-teal-600">
-          Ingreso de orden de despacho
-        </div>
-        <div className="mb-5">
-          <label className="block font-bold mb-2">Fecha de despacho</label>
-          <input
-            type="date"
-            placeholder="Ingresa fecha de despacho"
-            className="border border-gray-300 rounded-lg block w-full p-1"
-            {...register("fechaDespacho", { required: true })}
-          />
-        </div>
-        <div className="mb-5">
-          <label className="block font-bold mb-2">Patente de camión</label>
-          <input
-            type="text"
-            placeholder="Elige patente de camión"
-            className="border border-gray-300 rounded-lg block w-full p-1"
-            {...register("patenteCamion", { required: true })}
-          />
-        </div>
-        <div className="mb-5">
-          <label className="block font-bold mb-2">
-            Orden de compra asociado
-          </label>
-          <input
-            type="number"
-            disabled={true}
-            value={venta.idVenta}
-            className="border border-gray-300 rounded-lg block w-full text-slate-400 p-1"
-          />
-        </div>
-        <div className="mb-5">
-          <label className="block font-bold mb-2">Dirección de entrega</label>
-          <input
-            type="text"
-            disabled={true}
-            value={venta.direccionCompra}
-            className="border border-gray-300 rounded-lg block w-full text-slate-400 p-1"
-          />
-        </div>
-        <div className="mb-5">
-          <label className="block font-bold mb-2">Valor de compra</label>
-          <input
-            type="number"
-            value={venta.valorCompra}
-            className="border border-gray-300 rounded-lg block w-full text-slate-400 p-1"
-            disabled={true}
-          />
+    <div className="p-10 bg-white rounded-2xl">
+      <div className="text-center mb-8 border-b pb-4">
+        <h2 className="text-3xl font-bold text-gray-800 uppercase tracking-tight">
+          Generar Despacho #{venta.idVenta}
+        </h2>
+        <p className="text-gray-400 mt-2 italic">Ingresa los datos logísticos para la entrega</p>
+      </div>
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          
+          {/* Fila 1: Datos que ya conocemos (Solo lectura) */}
+          <div className="md:col-span-2 bg-teal-50/50 p-4 rounded-xl border border-teal-100">
+            <p className="text-xs font-bold text-teal-700 uppercase mb-2">Resumen de la Orden</p>
+            <p className="text-sm text-gray-600"><strong>Dirección:</strong> {venta.direccionCompra}</p>
+            <p className="text-sm text-gray-600"><strong>Monto:</strong> ${venta.valorCompra?.toLocaleString()}</p>
+          </div>
+
+          {/* Fila 2: Inputs que debe llenar el usuario */}
+          <div className="flex flex-col">
+            <label className="text-xs font-bold text-gray-500 mb-2 uppercase">Fecha Programada</label>
+            <input
+              type="date"
+              className={`p-3 border rounded-xl outline-none transition-all ${errors.fechaDespacho ? 'border-red-500 ring-2 ring-red-50' : 'border-gray-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-50'}`}
+              {...register("fechaDespacho", { required: "Campo obligatorio" })}
+            />
+          </div>
+
+          <div className="flex flex-col">
+            <label className="text-xs font-bold text-gray-500 mb-2 uppercase">Patente del Camión</label>
+            <input
+              type="text"
+              placeholder="AB-CD-12"
+              className={`p-3 border rounded-xl outline-none transition-all ${errors.patenteCamion ? 'border-red-500 ring-2 ring-red-50' : 'border-gray-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-50'}`}
+              {...register("patenteCamion", { required: "Campo obligatorio" })}
+            />
+          </div>
         </div>
 
-        <button
-          className="py-6 px-14 rounded-lg bg-teal-600 text-white font-bold mb-14"
-          type="submit"
-        >
-          Asignar despacho
-        </button>
+        {/* Botón de acción centrado */}
+        <div className="flex justify-center pt-6">
+          <button
+            type="submit"
+            className="w-full md:w-3/4 bg-teal-600 hover:bg-teal-700 text-white font-bold py-4 rounded-2xl shadow-xl shadow-teal-100 transition-all active:scale-95 uppercase tracking-widest"
+          >
+            Confirmar Despacho
+          </button>
+        </div>
       </form>
-    </>
+    </div>
   );
 };
