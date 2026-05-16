@@ -77,13 +77,12 @@ jobs:
           distribution: 'temurin'
           cache: maven
       - name: Ejecutar test del backend
-        run: mvn clean test -Dspring.profiles.active=test
-        env:
-          DB_ENDPOINT: localhost
-          DB_PORT: 3306
-          DB_NAME: ventas_db
-          DB_USERNAME: root
-          DB_PASSWORD: ""
+        run: |
+          mvn clean test \
+          -Dspring.profiles.active=test \
+          "-Dspring.datasource.url=jdbc:mysql://localhost:3306/despachos_db?useSSL=false&serverTimezone=UTC&createDatabaseIfNotExist=true" \
+          -Dspring.datasource.username=root \
+          -Dspring.datasource.password=
   back-Venta-build:
     needs: back-Venta-test
     runs-on: ubuntu-latest
@@ -126,13 +125,12 @@ jobs:
           distribution: 'temurin'
           cache: maven
       - name: Ejecutar test del backend
-        run: mvn clean test -Dspring.profiles.active=test
-        env:
-          DB_ENDPOINT: localhost
-          DB_PORT: 3306
-          DB_NAME: despachos_db
-          DB_USERNAME: root
-          DB_PASSWORD: ""
+        run: |
+          mvn clean test \
+          -Dspring.profiles.active=test \
+          "-Dspring.datasource.url=jdbc:mysql://localhost:3306/ventas_db?useSSL=false&serverTimezone=UTC&createDatabaseIfNotExist=true" \
+          -Dspring.datasource.username=root \
+          -Dspring.datasource.password=
 
   back-Despacho-build:
     needs: back-Despacho-test
