@@ -116,7 +116,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
-      - name: Empaquetar Aplicación
+      - name: Empaquetar Aplicación del front
         run: mvn clean package -DskipTests
   # ========================= #
   # BACKEND DESPACHOS TESTING #
