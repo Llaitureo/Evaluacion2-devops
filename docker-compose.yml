@@ -1,36 +1,27 @@
+version: '3.8'
+
 services:
-  # ===== #
-  # MYSQL #
-  # ===== #
   mysql:
     image: mysql:8
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD_R}
-    env_file:
-      - ./.env
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORDR}
     expose:
       - "3306"
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - /home/ec2-user/innovatech-project/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
-      test: ["CMD","mysqladmin","ping","-h","localhost"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
       - back-net
-  # ====== #
-  # VENTAS #
-  # ====== #
+
   backend-ventas:
-    build:
-      context: ./back-Ventas_SpringBoot/Springboot-API-REST/
-      dockerfile: dockerfile
+    image: ${AWS_ECR_REGISTRY}/innovatech-ventas:latest
     ports:
       - "8081:8081"
-    env_file:
-      - ./.env
     user: "${CURRENT_UID}:${CURRENT_GID}"
     environment:
       DATASOURCE_URL: jdbc:mysql://mysql:${DB_PORT}/${DB_NAME}
@@ -41,23 +32,22 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/actuator/health"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
     networks:
       - front-net
       - back-net
-  # ========= #
-  # DESPACHOS #
-  # ========= #
   backend-despachos:
-    build:
-      context: ./back-Despachos_SpringBoot/Springboot-API-REST-DESPACHO/
-      dockerfile: dockerfile
+    image: ${AWS_ECR_REGISTRY}/innovatech-despachos:latest
     ports:
       - "8082:8082"
-    env_file:
-      - ./.env
     user: "${CURRENT_UID}:${CURRENT_GID}"
     environment:
-      DATASOURCE_URL_D: jdbc:mysql://mysql:${DB_PORT}/${DB_NAME_D}
+      DATASOURCE_URL: jdbc:mysql://mysql:${DB_PORT}/${DB_NAME_D}
       DB_PORT: ${DB_PORT}
       DB_NAME: ${DB_NAME_D}
       DB_USERNAME: ${DB_USERNAME_D}
@@ -66,35 +56,19 @@ services:
       mysql:
         condition: service_healthy
       backend-ventas:
-        condition: service_healthy
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8082/actuator/health"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
     networks:
       - front-net
       - back-net
-  # ======== #
-  # FRONTEND #
-  # ======== #
-  frontend:
-    build:
-      context: ./front_despacho/
-      dockerfile: dockerfile
-    ports:
-      - "80:80"
-    user: "${CURRENT_UID}:${CURRENT_GID}"
-    env_file:
-      - ./.env
-    environment:
-      HOST: 0.0.0.0
-    depends_on:
-      - mysql
-      - backend-ventas
-      - backend-despachos
-    networks:
-      - front-net
-# ================== #
-# VOLUMES & NETWORKS #
-# ================== #
 volumes:
   mysql_data:
+
 networks:
   front-net:
     driver: bridge
