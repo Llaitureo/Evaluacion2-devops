@@ -1,20 +1,28 @@
 services:
+  # ===== #
+  # MYSQL #
+  # ===== #
   mysql:
     image: mysql:8
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
-      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD_R}
     env_file:
       - ./.env
-    ports:
-      - "3306:3306"
+    expose:
+      - "3306"
     volumes:
       - mysql_data:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
       test: ["CMD","mysqladmin","ping","-h","localhost"]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - back-net
+  # ====== #
+  # VENTAS #
+  # ====== #
   backend-ventas:
     build:
       context: ./back-Ventas_SpringBoot/Springboot-API-REST/
@@ -23,8 +31,9 @@ services:
       - "8081:8081"
     env_file:
       - ./.env
+    user: "${CURRENT_UID}:${CURRENT_GID}"
     environment:
-      DATASOURCE_URL: jdbc:mysql://${DB_ENDPOINT}:${DB_PORT}/${DB_NAME}
+      DATASOURCE_URL: jdbc:mysql://mysql:${DB_PORT}/${DB_NAME}
       DB_PORT: ${DB_PORT}
       DB_NAME: ${DB_NAME}
       DB_USERNAME: ${DB_USERNAME}
@@ -32,6 +41,12 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+    networks:
+      - front-net
+      - back-net
+  # ========= #
+  # DESPACHOS #
+  # ========= #
   backend-despachos:
     build:
       context: ./back-Despachos_SpringBoot/Springboot-API-REST-DESPACHO/
@@ -40,24 +55,48 @@ services:
       - "8082:8082"
     env_file:
       - ./.env
+    user: "${CURRENT_UID}:${CURRENT_GID}"
     environment:
-      DATASOURCE_URL_D: jdbc:mysql://${DB_ENDPOINT}:${DB_PORT}/despachos_db
+      DATASOURCE_URL_D: jdbc:mysql://mysql:${DB_PORT}/${DB_NAME_D}
       DB_PORT: ${DB_PORT}
-      DB_USERNAME: ${DB_USERNAME}
-      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME_D}
+      DB_USERNAME: ${DB_USERNAME_D}
+      DB_PASSWORD: ${DB_PASSWORD_D}
     depends_on:
-      - backend-ventas
+      mysql:
+        condition: service_healthy
+      backend-ventas:
+        condition: service_healthy
+    networks:
+      - front-net
+      - back-net
+  # ======== #
+  # FRONTEND #
+  # ======== #
   frontend:
     build:
       context: ./front_despacho/
       dockerfile: dockerfile
     ports:
-      - "3000:80"
+      - "80:80"
+    user: "${CURRENT_UID}:${CURRENT_GID}"
+    env_file:
+      - ./.env
     environment:
-      REACT_APP_BACKEND_VENTAS_URL: http://backend-ventas:8081/api/v1/ventas
-      REACT_APP_BACKEND_DESPACHOS_URL: http://backend-despachos:8082/api/v1/despachos
       HOST: 0.0.0.0
     depends_on:
+      - mysql
+      - backend-ventas
       - backend-despachos
+    networks:
+      - front-net
+# ================== #
+# VOLUMES & NETWORKS #
+# ================== #
 volumes:
   mysql_data:
+networks:
+  front-net:
+    driver: bridge
+  back-net:
+    driver: bridge
