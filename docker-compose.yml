@@ -4,10 +4,10 @@ services:
   # ===== #
   mysql:
     image: mysql:8
-    environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD_R}
     env_file:
       - ./.env
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD_R}
     expose:
       - "3306"
     volumes:
@@ -26,7 +26,7 @@ services:
   backend-ventas:
     build:
       context: ./back-Ventas_SpringBoot/Springboot-API-REST/
-      dockerfile: dockerfile
+      dockerfile: Dockerfile
     ports:
       - "8081:8081"
     env_file:
@@ -38,6 +38,12 @@ services:
       DB_NAME: ${DB_NAME}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/actuator/health"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
     depends_on:
       mysql:
         condition: service_healthy
@@ -50,7 +56,7 @@ services:
   backend-despachos:
     build:
       context: ./back-Despachos_SpringBoot/Springboot-API-REST-DESPACHO/
-      dockerfile: dockerfile
+      dockerfile: Dockerfile
     ports:
       - "8082:8082"
     env_file:
@@ -75,17 +81,16 @@ services:
   # ======== #
   frontend:
     build:
-      context: ./front_despacho/
-      dockerfile: dockerfile
+      context: ./front_despacho
+      dockerfile: Dockerfile
     ports:
-      - "80:80"
+      - "8080:8080"
     user: "${CURRENT_UID}:${CURRENT_GID}"
     env_file:
       - ./.env
     environment:
       HOST: 0.0.0.0
     depends_on:
-      - mysql
       - backend-ventas
       - backend-despachos
     networks:
