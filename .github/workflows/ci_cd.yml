@@ -257,13 +257,21 @@ jobs:
 
             aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_REGISTRY }}
 
+            
+
             echo "Escribiendo docker-compose.yml desde Base64..."
             echo "${{ steps.read_compose.outputs.content }}" | base64 -d > docker-compose.yml
 
             echo "AWS_ECR_REGISTRY=${{ secrets.AWS_ECR_REGISTRY }}" > .env
 
+            echo "Aplicando permisos de escritura para MySQL..."
+            sudo chmod -R 777 /home/ec2-user/innovatech-project
+
             echo "Descargando imágenes desde AWS ECR..."
             docker compose pull
 
+            echo "Limpiando contenedores o volúmenes huérfanos..."
+            docker compose down --volumes --remove-orphans || true
+            
             echo "Levantando la infraestructura Innovatech..."
             docker compose up -d --remove-orphans
