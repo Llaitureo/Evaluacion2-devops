@@ -85,11 +85,10 @@ jobs:
         run: sleep 10
       - name: Ejecutar test del backend
         env:
-          # Estándar de Spring
+          SPRING_PROFILES_ACTIVE: test
           SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/innovatech_ventas_db?useSSL=false&serverTimezone=UTC&createDatabaseIfNotExist=true
           SPRING_DATASOURCE_USERNAME: root
           SPRING_DATASOURCE_PASSWORD: root_ci
-          SPRING_PROFILES_ACTIVE: test
           
           DB_PORT: 3306
           DB_NAME: innovatech_ventas_db
@@ -148,6 +147,7 @@ jobs:
         run: sleep 10
       - name: Ejecutar test del backend
         env:
+          SPRING_PROFILES_ACTIVE: test
           DB_PORT: 3306
           DB_NAME_D: innovatech_despachos_db
           DB_USERNAME_D: root
@@ -156,7 +156,7 @@ jobs:
           SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/innovatech_despachos_db?useSSL=false&serverTimezone=UTC&createDatabaseIfNotExist=true
           SPRING_DATASOURCE_USERNAME: root
           SPRING_DATASOURCE_PASSWORD: root_ci
-          SPRING_PROFILES_ACTIVE: test
+          
         run: |
           mvn clean test -Dspring.profiles.active=test
   # ========================== #
