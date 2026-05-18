@@ -251,7 +251,8 @@ jobs:
             git clone -b deploy https://github.com/Llaitureo/Evaluacion2-devops.git ../temp-repo
             cp -r ../temp-repo/* .
             rm -rf ../temp-repo
-
+            
+            sed -i '/secrets/d' .env
             echo "Corrigiendo llaves de GitHub en el archivo .env..."
             echo "AWS_ECR_REGISTRY=${{ secrets.AWS_ECR_REGISTRY }}" >> .env
 
