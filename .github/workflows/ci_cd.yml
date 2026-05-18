@@ -67,7 +67,7 @@ jobs:
       mysql:
         image: mysql:8.0
         env:
-          MYSQL_ROOT_PASSWORD: "root_ci"
+          MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
           MYSQL_DATABASE: innovatech_ventas_db
         ports:
           - 3306:3306
@@ -88,12 +88,12 @@ jobs:
           SPRING_PROFILES_ACTIVE: test
           SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/innovatech_ventas_db?useSSL=false&serverTimezone=UTC&createDatabaseIfNotExist=true
           SPRING_DATASOURCE_USERNAME: root
-          SPRING_DATASOURCE_PASSWORD: root_ci
+          SPRING_DATASOURCE_PASSWORD:
           
           DB_PORT: 3306
           DB_NAME: innovatech_ventas_db
           DB_USERNAME: root
-          DB_PASSWORD: root_ci
+          DB_PASSWORD:
           DATASOURCE_URL: jdbc:mysql://localhost:3306/innovatech_ventas_db?useSSL=false&serverTimezone=UTC&createDatabaseIfNotExist=true
         run: |
           mvn clean test
@@ -129,7 +129,7 @@ jobs:
       mysql:
         image: mysql:8.0
         env:
-          MYSQL_ROOT_PASSWORD: "root_ci"
+          MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
           MYSQL_DATABASE: innovatech_despachos_db
         ports:
           - 3306:3306
@@ -151,11 +151,11 @@ jobs:
           DB_PORT: 3306
           DB_NAME_D: innovatech_despachos_db
           DB_USERNAME_D: root
-          DB_PASSWORD_D: root_ci
+          DB_PASSWORD_D:
           DATASOURCE_URL_D: jdbc:mysql://localhost:3306/innovatech_despachos_db
           SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/innovatech_despachos_db?useSSL=false&serverTimezone=UTC&createDatabaseIfNotExist=true
           SPRING_DATASOURCE_USERNAME: root
-          SPRING_DATASOURCE_PASSWORD: root_ci
+          SPRING_DATASOURCE_PASSWORD:
           
         run: |
           mvn clean test -Dspring.profiles.active=test
