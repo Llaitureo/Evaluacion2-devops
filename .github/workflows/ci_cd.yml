@@ -246,15 +246,18 @@ jobs:
 
             aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_REGISTRY }}
 
-            if [ ! -d ".git" ]; then
-              echo "La carpeta contiene archivos (.env). Clonando mediante repositorio puente..."
-              git clone -b deploy https://github.com/Llaitureo/Evaluacion2-devops.git ../temp-repo
-              mv ../temp-repo/.git .
-              git reset --hard HEAD
-              rm -rf ../temp-repo
-            else
-              echo "El repositorio ya existe, aplicando git pull..."
-              git pull origin deploy
-            fi
+            echo "Sincronizando repositorio..."
+            rm -rf ../temp-repo
+            git clone -b deploy https://github.com/Llaitureo/Evaluacion2-devops.git ../temp-repo
+            cp -r ../temp-repo/* .
+            rm -rf ../temp-repo
+
+            echo "Corrigiendo llaves de GitHub en el archivo .env..."
+            sed -i 's|\${{secrets.AWS_ECR_REGISTRY}}|${{ secrets.AWS_ECR_REGISTRY }}|g' .env
+
+            echo "=== CONTENIDO DEL .ENV CORREGIDO ==="
+            cat .env | grep AWS_ECR_REGISTRY
+            echo "======================================"
+
             docker compose pull backend-ventas backend-despachos
             docker compose up -d --remove-orphans
