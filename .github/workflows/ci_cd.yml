@@ -230,6 +230,13 @@ jobs:
             docker rm web-front || true
             docker run -d --restart always -p 8083:8083 --name web-front ${{ secrets.AWS_ECR_REGISTRY }}/innovatech-frontend:latest
 
+      - name: Leer docker-compose local
+        id: read_compose
+        run: |
+          echo "content<<EOF" >> $GITHUB_OUTPUT
+          cat docker-compose.yml >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
       - name: Despliegue en EC2 Privada (Backend & Módulos)
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -244,21 +251,22 @@ jobs:
             mkdir -p /home/ec2-user/innovatech-project
             cd /home/ec2-user/innovatech-project
 
+            echo "Limpiando directorio de trabajo..."
+            sudo rm -rf /home/ec2-user/innovatech-project
+            mkdir -p /home/ec2-user/innovatech-project
+            cd /home/ec2-user/innovatech-project
+
             aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_REGISTRY }}
 
-            echo "Sincronizando repositorio..."
-            rm -rf ../temp-repo
-            git clone -b deploy https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/Llaitureo/Evaluacion2-devops.git ../temp-repo
-            rsync -av --exclude='.git' ../temp-repo/ .
-            rm -rf ../temp-repo
-            
-            sed -i '/secrets/d' .env
-            echo "Corrigiendo llaves de GitHub en el archivo .env..."
-            echo "AWS_ECR_REGISTRY=${{ secrets.AWS_ECR_REGISTRY }}" >> .env
+            echo "Escribiendo docker-compose.yml..."
+            cat << 'EOF' > docker-compose.yml
+            ${{ steps.read_compose.outputs.content }}
+            EOF
 
-            echo "=== CONTENIDO DEL .ENV CORREGIDO ==="
-            cat .env | grep AWS_ECR_REGISTRY
-            echo "======================================"
+            echo "AWS_ECR_REGISTRY=${{ secrets.AWS_ECR_REGISTRY }}" > .env
 
+            echo "Descargando imágenes desde AWS ECR..."
             docker compose pull
+
+            echo "Levantando la infraestructura Innovatech..."
             docker compose up -d --remove-orphans
