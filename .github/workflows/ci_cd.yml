@@ -241,8 +241,17 @@ jobs:
           proxy_key: ${{ secrets.EC2_SSH_KEY }}
           proxy_port: 22
           script: |
+            mkdir -p /home/ec2-user/innovatech-project
             cd /home/ec2-user/innovatech-project
+
             aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_REGISTRY }}
-            git pull origin deploy
+
+            if [ ! -d ".git" ]; then
+              echo "Clonando el repositorio por primera vez en la EC2..."
+              git clone -b deploy https://github.com/${{ github.repository }}.git .
+            else
+              echo "El repositorio ya existe, aplicando git pull..."
+              git pull origin deploy
+            fi
             docker compose pull backend-ventas backend-despachos
             docker compose up -d --remove-orphans
