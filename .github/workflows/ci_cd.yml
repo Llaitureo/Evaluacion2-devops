@@ -253,7 +253,7 @@ jobs:
             rm -rf ../temp-repo
 
             echo "Corrigiendo llaves de GitHub en el archivo .env..."
-            sed -i 's|\${{secrets.AWS_ECR_REGISTRY}}|${{ secrets.AWS_ECR_REGISTRY }}|g' .env
+            echo "AWS_ECR_REGISTRY=${{ secrets.AWS_ECR_REGISTRY }}" >> .env
 
             echo "=== CONTENIDO DEL .ENV CORREGIDO ==="
             cat .env | grep AWS_ECR_REGISTRY
