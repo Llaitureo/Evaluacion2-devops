@@ -230,11 +230,13 @@ jobs:
             docker rm web-front || true
             docker run -d --restart always -p 8083:8083 --name web-front ${{ secrets.AWS_ECR_REGISTRY }}/innovatech-frontend:latest
 
-      - name: Codificar docker-compose local
-        id: read_compose
+      - name: Codificar archivos necesarios
+        id: read_files
         run: |
           COMP_BASE64=$(base64 -w 0 docker-compose.yml)
           echo "content=$COMP_BASE64" >> $GITHUB_OUTPUT
+
+          echo "mysql_init=$(base64 -w 0 db/init.sql)" >> $GITHUB_OUTPUT
 
       - name: Despliegue en EC2 Privada (Backend & Módulos)
         uses: appleboy/ssh-action@v1.0.3
@@ -262,6 +264,9 @@ jobs:
             echo "Escribiendo docker-compose.yml desde Base64..."
             echo "${{ steps.read_compose.outputs.content }}" | base64 -d > docker-compose.yml
 
+            mkdir -p db
+            echo "${{ steps.read_files.outputs.mysql_init }}" | base64 -d > db/init.sql
+
             echo "AWS_ECR_REGISTRY=${{ secrets.AWS_ECR_REGISTRY }}" > .env
 
             echo "Aplicando permisos de escritura para MySQL..."
@@ -272,6 +277,6 @@ jobs:
 
             echo "Limpiando contenedores o volúmenes huérfanos..."
             docker compose down --volumes --remove-orphans || true
-            
+
             echo "Levantando la infraestructura Innovatech..."
             docker compose up -d --remove-orphans
