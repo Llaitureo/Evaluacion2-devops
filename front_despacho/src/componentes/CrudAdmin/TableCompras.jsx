@@ -12,7 +12,14 @@ export const TableCompras = () => {
 
   const compras = async () => {
     try {
-      const response = await axios.get(`http://localhost:8081/api/v1/ventas`);
+      const env = import.meta.env.PROD ? '/api/v1' : 'http://localhost';
+
+        export const API_VENTAS = import.meta.env
+          ? `${env}/ventas` 
+          : `${env}:8081/v1/ventas`;
+        const url = `${API_VENTAS}`;
+
+      const response = await axios.get(`${API_VENTAS}`);
       setVentas(response.data);
     } catch (error) {
       console.error("Error al cargar ventas", error);

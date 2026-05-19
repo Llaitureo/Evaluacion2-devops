@@ -21,9 +21,19 @@ export const FormDespacho = ({ venta, onClose }) => {
     };
 
     try {
-      await axios.put(`http://localhost:8081/api/v1/ventas/${venta.idVenta}`, jsonUpdateVenta);
-      
-      await axios.post(`http://localhost:8082/api/v1/despachos`, jsonDespacho);
+
+      const env = import.meta.env.PROD ? '/api/v1' : 'http://localhost';
+      export const API_DESPACHOS = import.meta.env
+        ? `${env}/despachos` 
+        : `${env}:8082/v1/despachos`;
+
+      const env = import.meta.env.PROD ? '/api/v1' : 'http://localhost';
+      export const API_VENTAS = import.meta.env
+        ? `${env}/ventas` 
+        : `${env}:8081/v1/ventas`;
+        
+      await axios.put(`${API_VENTAS}/${venta.idVenta}`, jsonUpdateVenta);
+      await axios.post(`${API_DESPACHOS}`, jsonDespacho);
 
       Swal.fire({
         title: "¡Despacho Creado!",

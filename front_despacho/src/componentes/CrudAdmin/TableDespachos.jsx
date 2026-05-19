@@ -10,7 +10,13 @@ export const TableDespachos = () => {
   const [despachoSeleccionado, setDespachoSeleccionado] = useState(null);
 
   const cargarDespachos = async () => {
-    const url = 'http://localhost:8082/api/v1/despachos';
+    const env = import.meta.env.PROD ? '/api/v1' : 'http://localhost';
+
+    export const API_DESPACHOS = import.meta.env
+      ? `${env}/despachos` 
+      : `${env}:8082/v1/despachos`;
+    const url = `${API_DESPACHOS}`;
+
     try {
       const response = await axios.get(url);
       setDespachos(response.data);

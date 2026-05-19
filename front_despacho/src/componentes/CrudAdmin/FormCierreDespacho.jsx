@@ -20,7 +20,12 @@ export const FormCierreDespacho = ({ despacho, onClose }) => {
     };
 
     try {
-      const url = `http://localhost:8082/api/v1/despachos/${despacho.idDespacho}`;
+      const env = import.meta.env.PROD ? '/api/v1' : 'http://localhost';
+
+        export const API_DESPACHOS = import.meta.env
+          ? `${env}/despachos` 
+          : `${env}:8082/v1/despachos`;
+        const url = `${API_DESPACHOS}/${despacho.idDespacho}`;
       
       await axios.put(url, jsonUpdate);
 

@@ -14,8 +14,13 @@ export const FormVenta = ({ onVentaCreada }) => {
     };
 
     try {
-      const url = `http://localhost:8081/api/v1/ventas`;
-      
+      const env = import.meta.env.PROD ? '/api/v1' : 'http://localhost';
+
+        export const API_VENTAS = import.meta.env
+          ? `${env}/ventas` 
+          : `${env}:8081/v1/ventas`;
+        const url = `${API_VENTAS}`;
+
       await axios.post(url, nuevaVenta);
 
       Swal.fire({

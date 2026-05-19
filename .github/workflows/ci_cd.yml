@@ -233,7 +233,7 @@ jobs:
 
             docker stop web-front || true
             docker rm web-front || true
-            
+
             docker run -d --restart always \
               -p 8083:8080 \
               --add-host backend-ventas:${{ secrets.EC2_BACKEND_HOST }} \
