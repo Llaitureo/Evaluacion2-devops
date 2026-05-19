@@ -202,6 +202,10 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
+      - name: Inyectar IP del Backend en la plantilla de Nginx
+        run: |
+          sed -i "s/__BACKEND_IP__/${{ secrets.EC2_BACKEND_HOST }}/g" ./front_despacho/nginx.conf
+
       - name: Build and Push Docker Images
         run: |
           
@@ -226,8 +230,10 @@ jobs:
           script: |
             aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_REGISTRY }}
             docker pull ${{ secrets.AWS_ECR_REGISTRY }}/innovatech-frontend:latest
+
             docker stop web-front || true
             docker rm web-front || true
+            
             docker run -d --restart always \
               -p 8083:8080 \
               --add-host backend-ventas:${{ secrets.EC2_BACKEND_HOST }} \
