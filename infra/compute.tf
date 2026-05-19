@@ -59,10 +59,16 @@ resource "aws_launch_template" "back_template" {
   user_data = base64encode(<<-EOF
     #!/bin/bash
     # Esperar conexión mediante la NAT Gateway configurada
-    until curl -s --head http://www.google.com | head -n 1 | grep "200 OK" > /dev/null; do
+    until curl -s --head http://www.google.com | head -n 1 | grep "200" > /dev/null; do
       echo "Esperando conexión a internet..."
       sleep 5
     done
+
+    fallocate -l 2G /swapfile
+    chmod 600 /swapfile
+    mkswap /swapfile
+    swapon /swapfile
+    echo '/swapfile none swap sw 0 0' >> /etc/fstab
 
     yum update -y
     amazon-linux-extras install docker -y
