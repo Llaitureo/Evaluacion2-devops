@@ -86,15 +86,15 @@ jobs:
       - name: Ejecutar test del backend
         env:
           SPRING_PROFILES_ACTIVE: test
-          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/innovatech_ventas_db?useSSL=false&serverTimezone=UTC&createDatabaseIfNotExist=true
+          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/innovatech_db?useSSL=false&serverTimezone=UTC&createDatabaseIfNotExist=true
           SPRING_DATASOURCE_USERNAME: root
           SPRING_DATASOURCE_PASSWORD:
           
           DB_PORT: 3306
-          DB_NAME: innovatech_ventas_db
+          DB_NAME: innovatech_db
           DB_USERNAME: root
           DB_PASSWORD:
-          DATASOURCE_URL: jdbc:mysql://localhost:3306/innovatech_ventas_db?useSSL=false&serverTimezone=UTC&createDatabaseIfNotExist=true
+          DATASOURCE_URL: jdbc:mysql://localhost:3306/innovatech_db?useSSL=false&serverTimezone=UTC&createDatabaseIfNotExist=true
         run: |
           mvn clean test
   # ======================= #
@@ -149,11 +149,11 @@ jobs:
         env:
           SPRING_PROFILES_ACTIVE: test
           DB_PORT: 3306
-          DB_NAME_D: innovatech_despachos_db
-          DB_USERNAME_D: root
-          DB_PASSWORD_D:
-          DATASOURCE_URL_D: jdbc:mysql://localhost:3306/innovatech_despachos_db
-          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/innovatech_despachos_db?useSSL=false&serverTimezone=UTC&createDatabaseIfNotExist=true
+          DB_NAME: innovatech_db
+          DB_USERNAME: root
+          DB_PASSWORD:
+          DATASOURCE_URL: jdbc:mysql://localhost:3306/innovatech_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&createDatabaseIfNotExist=true
+          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/innovatech_db?useSSL=false&serverTimezone=UTC&createDatabaseIfNotExist=true
           SPRING_DATASOURCE_USERNAME: root
           SPRING_DATASOURCE_PASSWORD:
           
@@ -188,10 +188,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository (git clone)
-        uses: actions/checkout@v4 # Actualizado a v4
+        uses: actions/checkout@v4
 
       - name: Configurar las credenciales de AWS
-        uses: aws-actions/configure-aws-credentials@v4 # Actualizado a v4
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -262,7 +262,7 @@ jobs:
             
 
             echo "Escribiendo docker-compose.yml desde Base64..."
-            echo "${{ steps.read_compose.outputs.content }}" | base64 -d > docker-compose.yml
+            echo "${{ steps.read_file.outputs.content }}" | base64 -d > docker-compose.yml
 
             mkdir -p db
             echo "${{ steps.read_files.outputs.mysql_init }}" | base64 -d > db/init.sql
