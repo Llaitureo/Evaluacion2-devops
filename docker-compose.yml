@@ -37,7 +37,6 @@ services:
       mysql:
         condition: service_healthy
     healthcheck:
-      healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8081/swagger-ui.html"]
       interval: 20s
       timeout: 5s
@@ -63,7 +62,6 @@ services:
       backend-ventas:
         condition: service_healthy
     healthcheck:
-      healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8082/swagger-ui.html"]
       interval: 20s
       timeout: 5s
